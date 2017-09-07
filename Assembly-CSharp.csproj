@@ -53,7 +53,7 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\PlayerManager.cs" />
  <Reference Include="Facebook.Unity.Settings">
- <HintPath>/Users/Tarcisiosk/Documents/Projetos Passados/ATG/Escape/Library/FacebookSDK/Facebook.Unity.Settings.dll</HintPath>
+ <HintPath>/Users/Tarcisiosk/Documents/ATC/Escape/Library/FacebookSDK/Facebook.Unity.Settings.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.UI">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>

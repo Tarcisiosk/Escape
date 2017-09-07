@@ -7,55 +7,72 @@ static class Constants {
 
 public class PlayerManager : MonoBehaviour {
 
-	public enum Position {
+	public enum PlayerPosition {
 		Left,
 		Middle,
 		Right,
 	}
 
-	public Position currentPos;
+	public PlayerPosition currentPos;
+	public float xSpeed;
+	public bool isAligned;
+	private float treshold = 0.01f;
 
 	// Use this for initialization
 	void Start () {
-		currentPos = Position.Middle;
+		xSpeed = 3;
+		isAligned = true;
+		currentPos = PlayerPosition.Middle;
 		transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/2, Screen.height/6, Camera.main.nearClipPlane) );
 	}
 
 	void SetPos(){
+		Vector3 destination =  new Vector3(0, 0, 0);
+
 		switch(currentPos){
-		case Position.Left:
-			transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6, Screen.height/6, Camera.main.nearClipPlane) );
+		case PlayerPosition.Left:
+			destination = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6, Screen.height/6, Camera.main.nearClipPlane) );
 			break;
-		case Position.Middle:
-			transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/2, Screen.height/6, Camera.main.nearClipPlane) );
+		case PlayerPosition.Middle:
+			destination = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/2, Screen.height/6, Camera.main.nearClipPlane) );
 			break;
-		case Position.Right:
-			transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6*5, Screen.height/6, Camera.main.nearClipPlane) );
+		case PlayerPosition.Right:
+			destination = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6*5, Screen.height/6, Camera.main.nearClipPlane) );
 			break;
+		}
+
+		transform.position = Vector3.Lerp(transform.position, destination, Time.deltaTime*xSpeed);
+
+		if(Mathf.Abs(transform.position.x-destination.x) < treshold){
+			isAligned = true;
 		}
 	}
 
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown(KeyCode.LeftArrow)){
-			if(currentPos == Position.Right){
-				currentPos = Position.Middle;
-			} else if(currentPos == Position.Middle){
-				currentPos = Position.Left;
+			if(currentPos == PlayerPosition.Right){
+				currentPos = PlayerPosition.Middle;
+			} else if(currentPos == PlayerPosition.Middle){
+				currentPos = PlayerPosition.Left;
 			} else {
-				currentPos = Position.Left;
+				currentPos = PlayerPosition.Left;
 			}
-			SetPos();
+			isAligned = false;
 		}
 
 		if (Input.GetKeyDown(KeyCode.RightArrow)){
-			if(currentPos == Position.Left){
-				currentPos = Position.Middle;
-			} else if(currentPos == Position.Middle){
-				currentPos = Position.Right;
+			if(currentPos == PlayerPosition.Left){
+				currentPos = PlayerPosition.Middle;
+			} else if(currentPos == PlayerPosition.Middle){
+				currentPos = PlayerPosition.Right;
 			} else {
-				currentPos = Position.Right;
+				currentPos = PlayerPosition.Right;
 			}
+			isAligned = false;
+		}
+
+		if(!isAligned){
 			SetPos();
 		}
 	}
