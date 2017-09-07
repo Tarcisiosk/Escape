@@ -7,55 +7,72 @@ static class Constants {
 
 public class PlayerManager : MonoBehaviour {
 
-	public enum Position {
+	public enum Lane {
 		Left,
 		Middle,
 		Right,
 	}
 
-	public Position currentPos;
+	public Lane currentPos;
+	public float xSpeed;
+	public bool isAligned;
+	private float treshold = 0.01f;
 
 	// Use this for initialization
 	void Start () {
-		currentPos = Position.Middle;
+		xSpeed = 3;
+		isAligned = true;
+		currentPos = Lane.Middle;
 		transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/2, Screen.height/6, Camera.main.nearClipPlane) );
 	}
 
 	void SetPos(){
+		Vector3 destination =  new Vector3(0, 0, 0);
+
 		switch(currentPos){
-		case Position.Left:
-			transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6, Screen.height/6, Camera.main.nearClipPlane) );
+		case Lane.Left:
+			destination = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6, Screen.height/6, Camera.main.nearClipPlane) );
 			break;
-		case Position.Middle:
-			transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/2, Screen.height/6, Camera.main.nearClipPlane) );
+		case Lane.Middle:
+			destination = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/2, Screen.height/6, Camera.main.nearClipPlane) );
 			break;
-		case Position.Right:
-			transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6*5, Screen.height/6, Camera.main.nearClipPlane) );
+		case Lane.Right:
+			destination = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6*5, Screen.height/6, Camera.main.nearClipPlane) );
 			break;
+		}
+
+		transform.position = Vector3.Lerp(transform.position, destination, Time.deltaTime*xSpeed);
+
+		if(Mathf.Abs(transform.position.x-destination.x) < treshold){
+			isAligned = true;
 		}
 	}
 
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown(KeyCode.LeftArrow)){
-			if(currentPos == Position.Right){
-				currentPos = Position.Middle;
-			} else if(currentPos == Position.Middle){
-				currentPos = Position.Left;
+			if(currentPos == Lane.Right){
+				currentPos = Lane.Middle;
+			} else if(currentPos == Lane.Middle){
+				currentPos = Lane.Left;
 			} else {
-				currentPos = Position.Left;
+				currentPos = Lane.Left;
 			}
-			SetPos();
+			isAligned = false;
 		}
 
 		if (Input.GetKeyDown(KeyCode.RightArrow)){
-			if(currentPos == Position.Left){
-				currentPos = Position.Middle;
-			} else if(currentPos == Position.Middle){
-				currentPos = Position.Right;
+			if(currentPos == Lane.Left){
+				currentPos = Lane.Middle;
+			} else if(currentPos == Lane.Middle){
+				currentPos = Lane.Right;
 			} else {
-				currentPos = Position.Right;
+				currentPos = Lane.Right;
 			}
+			isAligned = false;
+		}
+
+		if(!isAligned){
 			SetPos();
 		}
 	}
