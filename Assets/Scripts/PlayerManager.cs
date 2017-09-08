@@ -10,19 +10,28 @@ public class PlayerManager : MonoBehaviour {
 	public enum Lane {
 		Left,
 		Middle,
-		Right,
+		Right
+	}
+
+	public enum Role {
+		Warrior,
+		Hunter
 	}
 
 	public Lane currentPos;
+	public Role currentRole;
 	public float xSpeed;
 	public bool isAligned;
 	private float treshold = 0.01f;
+	private float distanceToAttack = 1f;
 
 	// Use this for initialization
 	void Start () {
 		xSpeed = 3;
 		isAligned = true;
 		currentPos = Lane.Middle;
+		currentRole = Role.Warrior;
+		SetupWarrior();
 		transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/2, Screen.height/6, Camera.main.nearClipPlane) );
 	}
 
@@ -46,6 +55,35 @@ public class PlayerManager : MonoBehaviour {
 		if(Mathf.Abs(transform.position.x-destination.x) < treshold){
 			isAligned = true;
 		}
+	}
+
+	void ChangeCharacter(){
+		if(currentRole == Role.Warrior){
+			currentRole = Role.Hunter;
+			SetupHunter();
+		} else {
+			currentRole = Role.Warrior;
+			SetupWarrior();
+		}
+	}
+
+	void SetupWarrior(){
+		distanceToAttack = 0.2f;
+		Debug.Log("Trocando para Guerreira!!!");	
+	}
+
+	void SetupHunter(){
+		distanceToAttack = 1.0f;
+		Debug.Log("Trocando para Caçadora!!!");	
+	}
+
+	void Attack(){
+		Debug.Log("Toma seu puto!!!");	
+	}
+
+	bool InFrontOfEnemy(){
+		RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.up);
+		return hit.collider != null && hit.collider.gameObject.tag == "Enemy" && Mathf.Abs(hit.point.y - transform.position.y) < distanceToAttack;
 	}
 
 	// Update is called once per frame
@@ -72,9 +110,20 @@ public class PlayerManager : MonoBehaviour {
 			isAligned = false;
 		}
 
+		if (Input.GetKeyDown(KeyCode.Space)){
+			ChangeCharacter();
+		}
+
 		if(!isAligned){
 			SetPos();
 		}
 	}
+
+	void FixedUpdate() {
+		if(InFrontOfEnemy()){
+			Attack();
+		}
+	}
+		
 
 }
