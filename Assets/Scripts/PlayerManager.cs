@@ -17,6 +17,7 @@ public class PlayerManager : MonoBehaviour {
 	public float xSpeed;
 	public bool isAligned;
 	private float treshold = 0.01f;
+	private float distanceToAttack = 1f;
 
 	// Use this for initialization
 	void Start () {
@@ -48,6 +49,15 @@ public class PlayerManager : MonoBehaviour {
 		}
 	}
 
+	bool inFrontOfEnemy(){
+		RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.up);
+		return hit.collider != null && hit.collider.gameObject.tag == "Enemy" && Mathf.Abs(hit.point.y - transform.position.y) < distanceToAttack;
+	}
+
+	void Attack(){
+		Debug.Log("Toma seu puto!!!");	
+	}
+
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown(KeyCode.LeftArrow)){
@@ -76,5 +86,12 @@ public class PlayerManager : MonoBehaviour {
 			SetPos();
 		}
 	}
+
+	void FixedUpdate() {
+		if(inFrontOfEnemy()){
+			Attack();
+		}
+	}
+		
 
 }
