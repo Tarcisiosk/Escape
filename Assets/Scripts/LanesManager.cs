@@ -14,18 +14,32 @@ public class LanesManager : MonoBehaviour {
 		public int position;
 		public int size;
 		public Type type;
-        public LaneTile(int position, Type type = Type.Empty, int size = 1)
+		public PlayerManager.Lane lane;
+        public LaneTile(int position, PlayerManager.Lane lane, Type type = Type.Empty, int size = 1)
         {
 			this.position = position;
+			this.lane = lane;
 			this.type = type;
 			this.size = size;
         }
+
+		public Vector3 Bottom { get{
+			return new Vector3((tileSize.x)*((((float)lane-1f)*2f)), offset + tileSize.y*(position-0.5f), 0f);
+		} }
+
+		public Vector3 Center { get{
+			return new Vector3((tileSize.x)*((((float)lane-1f)*2f)), offset + tileSize.y*(position+size/2f-0.5f), 0f);
+		} }
+
+		public Vector3 Top { get{
+			return new Vector3((tileSize.x)*((((float)lane-1f)*2f)), offset + tileSize.y*(position+size-0.5f), 0f);
+		} }
     }
 
 	public int tilesBufferSize = 10;
-	public float offset = 0f;
+	public static float offset = 0f;
     public float speed = 0.5f;
-	private Vector3 _tileSize;
+	public static Vector3 tileSize;
 	private LaneTile[][] tiles = null;
 	public LaneTile[] Left {get{
 		return tiles[(int)PlayerManager.Lane.Left];
@@ -50,11 +64,11 @@ public class LanesManager : MonoBehaviour {
 		offset -= Time.deltaTime * speed;
 
 		for(int lane = 0; lane < 3; lane++){
-			var tileTopPos = offset + _tileSize.y*(tiles[lane][0].position+tiles[lane][0].size);
-			if(tileTopPos < -_tileSize.y){
+			if(tiles[lane][0].Top.y < -tileSize.y*1.5f){
 				var firstTile = tiles[lane][0];
 				firstTile.position = tiles[lane][tilesBufferSize-1].position+tiles[lane][tilesBufferSize-1].size;
 				firstTile.type = (LaneTile.Type)Random.Range(0, 5);
+				firstTile.size = Random.Range(0, Random.Range(0, 3))+1;
 				for(int i = 0; i < tilesBufferSize-1; i++){
 					tiles[lane][i] = tiles[lane][i+1];
 				}
@@ -73,38 +87,31 @@ public class LanesManager : MonoBehaviour {
 	void OnDrawGizmosSelected()
 	{
 		if(tiles != null){
-			Vector3 size, pos;
+			Vector3 size;
 			size.z = 1f;
-			size.x = _tileSize.x*2f;
-			pos.z = _tileSize.z;
+			size.x = tileSize.x*2f;
 			for(int lane = 0; lane < 3; lane++){
-				//Gizmos.color = lane == 0 ? Color.red : lane == 1 ? Color.green : Color.blue;
-				pos.x = (_tileSize.x)*((lane-1f)*2f);
 				for(int i = 0; i < tilesBufferSize; i++){
 					Gizmos.color = tileColors[(int)tiles[lane][i].type];
-					pos.y = offset + _tileSize.y*tiles[lane][i].position;
-					size.y = tiles[lane][i].size*_tileSize.y;
-					Gizmos.DrawCube(pos, size);
-					Gizmos.DrawWireCube(pos, size);
+					size.y = tiles[lane][i].size*tileSize.y;
+					Gizmos.DrawWireCube(tiles[lane][i].Center, size);
+					Gizmos.DrawLine(tiles[lane][i].Bottom, tiles[lane][i].Top);
 				}
 			}
 		}
 	}
 
 	public void InitialSetup(){
-		_tileSize = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/3, Screen.height/6, Camera.main.nearClipPlane) );
-		_tileSize.y *= -1f;
-		_tileSize.x *= -1f;
+		tileSize = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/3, Screen.height/6, Camera.main.nearClipPlane) );
+		tileSize.y *= -1f;
+		tileSize.x *= -1f;
+
 		tiles = null;
 		tiles = new LaneTile[3][];
 		for(int lane = 0; lane < 3; lane++){
 			tiles[lane] = new LaneTile[tilesBufferSize];
-			int size;
-			int pos = -1;
 			for(int i = 0; i < tilesBufferSize; i++){
-				size = 1; //Random.Range(0, 3)+1;
-				tiles[lane][i] = new LaneTile(pos, LaneTile.Type.Empty, size);
-				pos += size;
+				tiles[lane][i] = new LaneTile(i-1, (PlayerManager.Lane)lane);
 			}
 		}
 	}
