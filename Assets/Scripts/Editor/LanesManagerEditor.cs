@@ -2,17 +2,17 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor (typeof (LanesManager))]
+[CustomEditor(typeof (LanesManager))]
 public class LanesManagerEditor : Editor {
 
-	public override void OnInspectorGUI () {
-		DrawDefaultInspector ();
+    public override void OnInspectorGUI() {
+        DrawDefaultInspector();
 
-		LanesManager myScript = (LanesManager) target;
+        LanesManager myScript = (LanesManager) target;
 
-		if (GUILayout.Button ("Initial setup")) {
-			myScript.InitialSetup ();
-		}
-	}
+        if (GUILayout.Button("Initial setup")) {
+            myScript.InitialSetup();
+        }
+    }
 }
 #endif
