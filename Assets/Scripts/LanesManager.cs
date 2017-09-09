@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class LanesManager : MonoBehaviour {
 
@@ -40,6 +42,11 @@ public class LanesManager : MonoBehaviour {
         }
     }
 
+    [System.Serializable]
+    public class WeightedLaneList : WeightedList<LaneTile.Type>{};
+    [System.Serializable]
+    public class WeightedSizeList : WeightedList<int>{};
+
     public int tilesBufferSize = 10;
     public static float offset = 0f;
     public float speed = 0.5f;
@@ -61,6 +68,8 @@ public class LanesManager : MonoBehaviour {
         }
     }
     public Color[] tileColors = new Color[5];
+    public WeightedLaneList laneTypeWeight = new WeightedLaneList();
+    public WeightedSizeList sizeWeight = new WeightedSizeList();
 
     void Awake() {
         if (tiles == null) {
@@ -75,8 +84,8 @@ public class LanesManager : MonoBehaviour {
             if (tiles[lane][0].Top.y < -tileSize.y * 1.5f) {
                 var firstTile = tiles[lane][0];
                 firstTile.position = tiles[lane][tilesBufferSize - 1].position + tiles[lane][tilesBufferSize - 1].size;
-                firstTile.type = (LaneTile.Type) Random.Range(0, 5);
-                firstTile.size = Random.Range(0, Random.Range(0, 3)) + 1;
+                firstTile.type = laneTypeWeight.GetRandomItem();
+                firstTile.size = sizeWeight.GetRandomItem();
                 for (int i = 0; i < tilesBufferSize - 1; i++) {
                     tiles[lane][i] = tiles[lane][i + 1];
                 }
@@ -119,6 +128,64 @@ public class LanesManager : MonoBehaviour {
             for (int i = 0; i < tilesBufferSize; i++) {
                 tiles[lane][i] = new LaneTile(i - 1, (PlayerManager.Lane) lane);
             }
+        }
+        /*
+        int[] distribution = new int[5];
+        for(int i = 0; i < 100000; i++){
+            distribution[(int)lanesWeight.GetRandomItem()]++;
+        }
+        for(int i = 0; i < 5; i++){
+            Debug.Log((LaneTile.Type)i +": "+distribution[i]);
+        }
+        */
+    }
+}
+
+[System.Serializable]
+public class WeightedList<T> : ISerializationCallbackReceiver {
+
+    [SerializeField]
+    public List<T> items = new List<T>();
+    [SerializeField]
+    public List<int> weights = new List<int>();
+
+    public Dictionary<T, int> dictionary = new Dictionary<T, int>();
+
+    public T GetRandomItem(){
+        // https://stackoverflow.com/questions/1761626/weighted-random-numbers
+
+        int totalWeight = dictionary.Sum(e => e.Value);
+        int random = Random.Range(0, totalWeight);
+
+        foreach(var kvp in dictionary){
+            if(random < kvp.Value){
+                return kvp.Key;
+            }
+            random -= kvp.Value;
+        }
+
+        Debug.Log("Oops!");
+        return dictionary.FirstOrDefault().Key;
+    }
+
+    public void OnBeforeSerialize() {
+        items.Clear();
+        weights.Clear();
+
+        items.AddRange(dictionary.Keys);
+        weights.AddRange(dictionary.Values);
+
+        // foreach(var kvp in dictionary){
+        //     items.Add(kvp.Key);
+        //     weights.Add(kvp.Value);
+        // }
+    }
+
+    public void OnAfterDeserialize() {
+        dictionary.Clear();
+
+        for(int i = 0 ; i < Mathf.Min(items.Count, weights.Count); i++){
+            dictionary.Add(items[i], weights[i]);
         }
     }
 }
