@@ -176,10 +176,10 @@ public abstract class WeightedListDrawer<T> : PropertyDrawer {
     }
 }
 
-[CustomPropertyDrawer(typeof (LanesManager.WeightedLaneList))]
+[CustomPropertyDrawer(typeof (WeightedLaneType))]
 public class WeightedLaneListDrawer : WeightedListDrawer<LanesManager.LaneTile.Type> { }
 
-[CustomPropertyDrawer(typeof (LanesManager.WeightedSizeList))]
+[CustomPropertyDrawer(typeof (WeightedInt))]
 public class WeightedSizeListDrawer : WeightedListDrawer<int> { }
 
 #endif

@@ -555,13 +555,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilesBufferSize: 5
-  offset: 0
+  speed: 2
   tileColors:
   - {r: 0.8827586, g: 0, b: 1, a: 1}
   - {r: 1, g: 0, b: 0, a: 1}
   - {r: 1, g: 1, b: 0, a: 1}
   - {r: 0, g: 0, b: 1, a: 1}
   - {r: 0, g: 1, b: 0, a: 1}
+  laneTypeWeight:
+    items: 0400000003000000020000000100000000000000
+    weights: 050000000a000000050000000f00000064000000
+  sizeWeight:
+    items: 0100000002000000030000000400000005000000
+    weights: f401000064000000190000000500000001000000
 --- !u!4 &1063523248
 Transform:
   m_ObjectHideFlags: 0

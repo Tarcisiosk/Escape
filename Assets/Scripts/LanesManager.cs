@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class LanesManager : MonoBehaviour {
 
@@ -14,38 +12,35 @@ public class LanesManager : MonoBehaviour {
         }
         public int position;
         public int size;
+        public int posX;
         public Type type;
         public PlayerManager.Lane lane;
-        public LaneTile(int position, PlayerManager.Lane lane, Type type = Type.Empty, int size = 1) {
+        public LaneTile(int position, PlayerManager.Lane lane, Type type = Type.Empty, int size = 1, int? posX = null) {
             this.position = position;
             this.lane = lane;
             this.type = type;
             this.size = size;
+            this.posX = posX ?? (int)lane-1;
         }
 
         public Vector3 Bottom {
             get {
-                return new Vector3((tileSize.x) * ((((float) lane - 1f) * 2f)), offset + tileSize.y * (position - 0.5f), 0f);
+                return new Vector3((tileSize.x) * ((((float) posX) * 2f)), offset + tileSize.y * (position - 0.5f), 0f);
             }
         }
 
         public Vector3 Center {
             get {
-                return new Vector3((tileSize.x) * ((((float) lane - 1f) * 2f)), offset + tileSize.y * (position + size / 2f - 0.5f), 0f);
+                return new Vector3((tileSize.x) * ((((float) posX) * 2f)), offset + tileSize.y * (position + size / 2f - 0.5f), 0f);
             }
         }
 
         public Vector3 Top {
             get {
-                return new Vector3((tileSize.x) * ((((float) lane - 1f) * 2f)), offset + tileSize.y * (position + size - 0.5f), 0f);
+                return new Vector3((tileSize.x) * ((((float) posX) * 2f)), offset + tileSize.y * (position + size - 0.5f), 0f);
             }
         }
     }
-
-    [System.Serializable]
-    public class WeightedLaneList : WeightedList<LaneTile.Type>{};
-    [System.Serializable]
-    public class WeightedSizeList : WeightedList<int>{};
 
     public int tilesBufferSize = 10;
     public static float offset = 0f;
@@ -68,8 +63,8 @@ public class LanesManager : MonoBehaviour {
         }
     }
     public Color[] tileColors = new Color[5];
-    public WeightedLaneList laneTypeWeight = new WeightedLaneList();
-    public WeightedSizeList sizeWeight = new WeightedSizeList();
+    public WeightedLaneType laneTypeWeight = new WeightedLaneType();
+    public WeightedInt sizeWeight = new WeightedInt();
 
     void Awake() {
         if (tiles == null) {
@@ -86,6 +81,7 @@ public class LanesManager : MonoBehaviour {
                 firstTile.position = tiles[lane][tilesBufferSize - 1].position + tiles[lane][tilesBufferSize - 1].size;
                 firstTile.type = laneTypeWeight.GetRandomItem();
                 firstTile.size = sizeWeight.GetRandomItem();
+                //if(offset < -5f) firstTile.posX -= 1;
                 for (int i = 0; i < tilesBufferSize - 1; i++) {
                     tiles[lane][i] = tiles[lane][i + 1];
                 }
@@ -128,64 +124,6 @@ public class LanesManager : MonoBehaviour {
             for (int i = 0; i < tilesBufferSize; i++) {
                 tiles[lane][i] = new LaneTile(i - 1, (PlayerManager.Lane) lane);
             }
-        }
-        /*
-        int[] distribution = new int[5];
-        for(int i = 0; i < 100000; i++){
-            distribution[(int)lanesWeight.GetRandomItem()]++;
-        }
-        for(int i = 0; i < 5; i++){
-            Debug.Log((LaneTile.Type)i +": "+distribution[i]);
-        }
-        */
-    }
-}
-
-[System.Serializable]
-public class WeightedList<T> : ISerializationCallbackReceiver {
-
-    [SerializeField]
-    public List<T> items = new List<T>();
-    [SerializeField]
-    public List<int> weights = new List<int>();
-
-    public Dictionary<T, int> dictionary = new Dictionary<T, int>();
-
-    public T GetRandomItem(){
-        // https://stackoverflow.com/questions/1761626/weighted-random-numbers
-
-        int totalWeight = dictionary.Sum(e => e.Value);
-        int random = Random.Range(0, totalWeight);
-
-        foreach(var kvp in dictionary){
-            if(random < kvp.Value){
-                return kvp.Key;
-            }
-            random -= kvp.Value;
-        }
-
-        Debug.Log("Oops!");
-        return dictionary.FirstOrDefault().Key;
-    }
-
-    public void OnBeforeSerialize() {
-        items.Clear();
-        weights.Clear();
-
-        items.AddRange(dictionary.Keys);
-        weights.AddRange(dictionary.Values);
-
-        // foreach(var kvp in dictionary){
-        //     items.Add(kvp.Key);
-        //     weights.Add(kvp.Value);
-        // }
-    }
-
-    public void OnAfterDeserialize() {
-        dictionary.Clear();
-
-        for(int i = 0 ; i < Mathf.Min(items.Count, weights.Count); i++){
-            dictionary.Add(items[i], weights[i]);
         }
     }
 }
