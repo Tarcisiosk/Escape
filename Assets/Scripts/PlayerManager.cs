@@ -134,7 +134,7 @@ public class PlayerManager : MonoBehaviour {
 	}
 
 	void FixedUpdate() {
-		if(InFrontOfEnemy() && currentRole == Role.Hunter){
+		if(InFrontOfEnemy()){
 			Attack();
 		}
 	}
