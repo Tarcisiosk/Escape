@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-static class Constants {
-}
+[System.Serializable]
+public class Character {
+	public int level, health, damage, armor;
+	public float speed;
+};
 
 public class PlayerManager : MonoBehaviour {
 
@@ -24,15 +27,17 @@ public class PlayerManager : MonoBehaviour {
 	public bool isAligned;
 	private float treshold = 0.01f;
 	private float distanceToAttack = 1f;
+	public Character warrior = new Character();
+	public Character hunter = new Character();
 
-	// Use this for initialization
 	void Start () {
 		xSpeed = 3;
 		isAligned = true;
 		currentPos = Lane.Middle;
-		currentRole = Role.Warrior;
-		SetupWarrior();
 		transform.position = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/2, Screen.height/6, Camera.main.nearClipPlane) );
+		currentRole = Role.Warrior;
+		SetupHunter();
+		SetupWarrior();
 	}
 
 	void SetPos(){
@@ -49,35 +54,37 @@ public class PlayerManager : MonoBehaviour {
 			destination = Camera.main.ScreenToWorldPoint( new Vector3(Screen.width/6*5, Screen.height/6, Camera.main.nearClipPlane) );
 			break;
 		}
-
 		transform.position = Vector3.Lerp(transform.position, destination, Time.deltaTime*xSpeed);
-
 		if(Mathf.Abs(transform.position.x-destination.x) < treshold){
 			isAligned = true;
 		}
 	}
 
-	void ChangeCharacter(){
-		if(currentRole == Role.Warrior){
-			currentRole = Role.Hunter;
-			SetupHunter();
-		} else {
-			currentRole = Role.Warrior;
-			SetupWarrior();
-		}
-	}
-
 	void SetupWarrior(){
-		distanceToAttack = 0.2f;
-		Debug.Log("Trocando para Guerreira!!!");	
+		distanceToAttack = 0.1f;
+		warrior.level = 1;
+		warrior.health = 100;
+		warrior.damage = 10;
+		warrior.armor = 5;
 	}
 
 	void SetupHunter(){
 		distanceToAttack = 1.0f;
-		Debug.Log("Trocando para Caçadora!!!");	
+		hunter.level = 1;
+		hunter.health = 50;
+		hunter.damage = 5;
+		hunter.armor = 0;
 	}
 
-	void Attack(){
+	void ChangeCharacter(){
+		if(currentRole == Role.Warrior){
+			currentRole = Role.Hunter;
+		} else {
+			currentRole = Role.Warrior;
+		}
+	}
+		
+	void Attack(EnemyManager enemy){
 		Debug.Log("Toma seu puto!!!");	
 	}
 
@@ -86,7 +93,14 @@ public class PlayerManager : MonoBehaviour {
 		return hit.collider != null && hit.collider.gameObject.tag == "Enemy" && Mathf.Abs(hit.point.y - transform.position.y) < distanceToAttack;
 	}
 
-	// Update is called once per frame
+	void OnCollisionEnter2D(Collision2D coll) {
+		if (coll.gameObject.tag == "Enemy"){
+			if(currentRole == Role.Warrior){
+			} else {
+			}
+		}
+	}
+
 	void Update () {
 		if (Input.GetKeyDown(KeyCode.LeftArrow)){
 			if(currentPos == Lane.Right){
