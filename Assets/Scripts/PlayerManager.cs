@@ -83,9 +83,9 @@ public class PlayerManager : MonoBehaviour {
 			currentRole = Role.Warrior;
 		}
 	}
-		
+
 	void Attack(EnemyManager enemy){
-		Debug.Log("Toma seu puto!!!");	
+		Debug.Log("Toma seu puto!!!");
 	}
 
 	bool InFrontOfEnemy(){
@@ -135,9 +135,8 @@ public class PlayerManager : MonoBehaviour {
 
 	void FixedUpdate() {
 		if(InFrontOfEnemy()){
-			Attack();
+			Attack(null);
 		}
 	}
-		
 
 }
