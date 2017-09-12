@@ -20,7 +20,7 @@ public class LanesManager : MonoBehaviour {
             this.lane = lane;
             this.type = type;
             this.size = size;
-            this.posX = posX ?? (int)lane-1;
+            this.posX = posX ?? (int) lane - 1;
         }
 
         public Vector3 Bottom {
@@ -43,6 +43,7 @@ public class LanesManager : MonoBehaviour {
     }
 
     public int tilesBufferSize = 10;
+    private int _lastTileIdx;
     public static float offset = 0f;
     public float speed = 0.5f;
     public static Vector3 tileSize;
@@ -65,6 +66,14 @@ public class LanesManager : MonoBehaviour {
     public Color[] tileColors = new Color[5];
     public WeightedLaneType laneTypeWeight = new WeightedLaneType();
     public WeightedInt sizeWeight = new WeightedInt();
+    public bool isAligned {
+        get {
+            return (Left[_lastTileIdx].size + Left[_lastTileIdx].position) == (Middle[_lastTileIdx].size + Middle[_lastTileIdx].position) &&
+                (Right[_lastTileIdx].size + Right[_lastTileIdx].position) == (Middle[_lastTileIdx].size + Middle[_lastTileIdx].position);
+        }
+    }
+
+    public bool keepAligned = false;
 
     void Awake() {
         if (tiles == null) {
@@ -75,17 +84,26 @@ public class LanesManager : MonoBehaviour {
     void Update() {
         offset -= Time.deltaTime * speed;
 
+        var maxH = Mathf.Max(Left[_lastTileIdx].position + Left[_lastTileIdx].size, Middle[_lastTileIdx].position + Middle[_lastTileIdx].size, Right[_lastTileIdx].position + Right[_lastTileIdx].size);
+
         for (int lane = 0; lane < 3; lane++) {
             if (tiles[lane][0].Top.y < -tileSize.y * 1.5f) {
                 var firstTile = tiles[lane][0];
-                firstTile.position = tiles[lane][tilesBufferSize - 1].position + tiles[lane][tilesBufferSize - 1].size;
+                firstTile.position = tiles[lane][_lastTileIdx].position + tiles[lane][_lastTileIdx].size;
                 firstTile.type = laneTypeWeight.GetRandomItem();
-                firstTile.size = sizeWeight.GetRandomItem();
+                if (keepAligned) {
+                    if (firstTile.position == maxH) {
+                        maxH += sizeWeight.GetRandomItem();
+                    }
+                    firstTile.size = maxH - firstTile.position;
+                } else {
+                    firstTile.size = sizeWeight.GetRandomItem();
+                }
                 //if(offset < -5f) firstTile.posX -= 1;
-                for (int i = 0; i < tilesBufferSize - 1; i++) {
+                for (int i = 0; i < _lastTileIdx; i++) {
                     tiles[lane][i] = tiles[lane][i + 1];
                 }
-                tiles[lane][tilesBufferSize - 1] = firstTile;
+                tiles[lane][_lastTileIdx] = firstTile;
             }
         }
     }
@@ -116,6 +134,8 @@ public class LanesManager : MonoBehaviour {
         tileSize = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 3, Screen.height / 6, Camera.main.nearClipPlane));
         tileSize.y *= -1f;
         tileSize.x *= -1f;
+
+        _lastTileIdx = tilesBufferSize - 1;
 
         tiles = null;
         tiles = new LaneTile[3][];
