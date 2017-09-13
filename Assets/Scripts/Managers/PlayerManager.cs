@@ -4,6 +4,8 @@ using UnityEngine;
 
 [System.Serializable]
 public class Character {
+	public GameObject charGameObject;
+
 	public int level, health, damage, armor;
 	public float speed;
 };
@@ -61,14 +63,17 @@ public class PlayerManager : MonoBehaviour {
 	}
 
 	void SetupWarrior(){
+		warrior.charGameObject = transform.Find("warrior").gameObject;
 		distanceToAttack = 0.1f;
 		warrior.level = 1;
 		warrior.health = 100;
 		warrior.damage = 10;
 		warrior.armor = 5;
+
 	}
 
 	void SetupHunter(){
+		hunter.charGameObject = transform.Find("hunter").gameObject;
 		distanceToAttack = 1.0f;
 		hunter.level = 1;
 		hunter.health = 50;
@@ -79,8 +84,12 @@ public class PlayerManager : MonoBehaviour {
 	void ChangeCharacter(){
 		if(currentRole == Role.Warrior){
 			currentRole = Role.Hunter;
+			hunter.charGameObject.SetActive(true);
+			warrior.charGameObject.SetActive(false);
 		} else {
 			currentRole = Role.Warrior;
+			warrior.charGameObject.SetActive(true);
+			hunter.charGameObject.SetActive(false);
 		}
 	}
 
