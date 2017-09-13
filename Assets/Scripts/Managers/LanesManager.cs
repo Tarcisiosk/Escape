@@ -15,12 +15,30 @@ public class LanesManager : MonoBehaviour {
         public int posX;
         public Type type;
         public PlayerManager.Lane lane;
+
+        public GameObject gameObject;
+        public SpriteRenderer spriteRenderer;
         public LaneTile(int position, PlayerManager.Lane lane, Type type = Type.Empty, int size = 1, int? posX = null) {
             this.position = position;
             this.lane = lane;
             this.type = type;
             this.size = size;
             this.posX = posX ?? (int) lane - 1;
+        }
+
+        public bool CreateGO(string name, Transform parent, Sprite sprite){
+            if(gameObject != null) return false;
+
+            gameObject = new GameObject(name);
+            gameObject.transform.SetParent(parent);
+            spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = sprite;
+            spriteRenderer.drawMode = SpriteDrawMode.Tiled;
+            spriteRenderer.tileMode = SpriteTileMode.Adaptive;
+            spriteRenderer.size = new Vector2(tileSize.x*2f, tileSize.y);
+            gameObject.transform.position = Center;
+
+            return true;
         }
 
         public Vector3 Bottom {
@@ -75,9 +93,13 @@ public class LanesManager : MonoBehaviour {
 
     public bool keepAligned = false;
 
-    void Awake() {
+    public GameObject[] lanesGO = new GameObject[3];
+
+    public Sprite brickSprite = null;
+
+    void Start() {
         if (tiles == null) {
-            Debug.LogError("INICIALIZE OS TILES PRIMEIRO!", this);
+            InitialSetup();
         }
     }
 
@@ -89,6 +111,7 @@ public class LanesManager : MonoBehaviour {
         for (int lane = 0; lane < 3; lane++) {
             if (tiles[lane][0].Top.y < -tileSize.y * 1.5f) {
                 var firstTile = tiles[lane][0];
+                firstTile.gameObject.name = (int.Parse(tiles[lane][_lastTileIdx].gameObject.name)+1).ToString();
                 firstTile.position = tiles[lane][_lastTileIdx].position + tiles[lane][_lastTileIdx].size;
                 firstTile.type = laneTypeWeight.GetRandomItem();
                 if (keepAligned) {
@@ -99,18 +122,16 @@ public class LanesManager : MonoBehaviour {
                 } else {
                     firstTile.size = sizeWeight.GetRandomItem();
                 }
+                firstTile.spriteRenderer.size = new Vector2(tileSize.x*2f, tileSize.y*firstTile.size);
                 //if(offset < -5f) firstTile.posX -= 1;
                 for (int i = 0; i < _lastTileIdx; i++) {
                     tiles[lane][i] = tiles[lane][i + 1];
                 }
                 tiles[lane][_lastTileIdx] = firstTile;
             }
-        }
-    }
-
-    void OnValidate() {
-        if (tiles == null) {
-            InitialSetup();
+            for(int tile = 0; tile < tilesBufferSize; tile++){
+                tiles[lane][tile].gameObject.transform.position = tiles[lane][tile].Center;
+            }
         }
     }
 
@@ -131,6 +152,8 @@ public class LanesManager : MonoBehaviour {
     }
 
     public void InitialSetup() {
+        offset = 0f;
+
         tileSize = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 3, Screen.height / 6, Camera.main.nearClipPlane));
         tileSize.y *= -1f;
         tileSize.x *= -1f;
@@ -140,9 +163,14 @@ public class LanesManager : MonoBehaviour {
         tiles = null;
         tiles = new LaneTile[3][];
         for (int lane = 0; lane < 3; lane++) {
+            if (lanesGO[lane] != null) DestroyImmediate(lanesGO[lane]);
+            lanesGO[lane] = new GameObject(((PlayerManager.Lane) lane).ToString());
+            lanesGO[lane].transform.SetParent(this.transform);
+
             tiles[lane] = new LaneTile[tilesBufferSize];
             for (int i = 0; i < tilesBufferSize; i++) {
                 tiles[lane][i] = new LaneTile(i - 1, (PlayerManager.Lane) lane);
+                tiles[lane][i].CreateGO(i.ToString(), lanesGO[lane].transform, brickSprite);
             }
         }
     }
